@@ -1,0 +1,300 @@
+/**
+ * UI primitives — shared, token-driven controls (Button, Spinner, Field,
+ * Modal, Toast). App-shell and feature styling lives in shell.css.
+ */
+
+/* --- Button: pill at rest, morphs to a technical corner on interaction --- */
+.ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+  white-space: nowrap;
+  padding: var(--s3) var(--s6);
+  border: 1px solid transparent;
+  border-radius: var(--r-pill);
+  font-family: var(--font-data);
+  font-size: var(--size-small);
+  font-weight: 500;
+  letter-spacing: var(--ls-tight);
+  line-height: var(--lh-compact);
+  transition: all var(--transition-normal);
+}
+
+.ui-button:hover:not(:disabled),
+.ui-button:active:not(:disabled),
+.ui-button:focus-visible:not(:disabled) {
+  border-radius: var(--r-technical);
+}
+
+.ui-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.ui-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.ui-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ui-button--full {
+  width: 100%;
+}
+
+.ui-button--sm {
+  padding: var(--s2) var(--s4);
+  font-size: var(--size-micro);
+}
+
+.ui-button--primary {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--accent-ink);
+  box-shadow: var(--shadow-md);
+}
+
+.ui-button--primary:hover:not(:disabled) {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-accent);
+}
+
+.ui-button--secondary {
+  background: transparent;
+  border-color: var(--ink-12);
+  color: var(--ink-60);
+}
+
+.ui-button--secondary:hover:not(:disabled) {
+  background: var(--ink-06);
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.ui-button--ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink-60);
+}
+
+.ui-button--ghost:hover:not(:disabled) {
+  background: var(--ink-06);
+  color: var(--ink);
+}
+
+.ui-button--danger {
+  background: transparent;
+  border-color: var(--neg-25);
+  color: var(--neg);
+}
+
+.ui-button--danger:hover:not(:disabled) {
+  background: var(--neg);
+  border-color: var(--neg);
+  color: #ffffff;
+}
+
+/* --- Spinner --- */
+.ui-spinner {
+  display: inline-block;
+  flex-shrink: 0;
+  border-radius: var(--r-round);
+  border: 2px solid var(--ink-12);
+  border-top-color: currentColor;
+  animation: ui-spin 0.7s linear infinite;
+}
+
+@keyframes ui-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* --- Field --- */
+.ui-field {
+  display: block;
+}
+
+.ui-field__hint,
+.ui-field__error {
+  display: block;
+  margin-top: var(--s1);
+  margin-bottom: 0;
+  font-family: var(--font-body);
+  font-size: var(--size-micro);
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.ui-field__hint {
+  color: var(--ink-60);
+}
+
+.ui-field__error {
+  color: var(--neg);
+}
+
+/* --- Modal: frosted scrim, morphs in from a pill --- */
+.ui-modal-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: grid;
+  place-items: center;
+  padding: var(--s4);
+  background: var(--scrim);
+  backdrop-filter: blur(14px);
+  animation: ui-fade-in var(--transition-fast);
+}
+
+.ui-modal {
+  width: 100%;
+  max-width: 420px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--ink-06);
+  border-radius: var(--r-surface);
+  box-shadow: var(--shadow-xl);
+  padding: var(--s5);
+  animation: ui-modal-in var(--t-med) var(--snap);
+}
+
+.ui-modal__title {
+  margin: 0 0 var(--s3);
+  font-size: var(--size-body);
+  font-weight: 600;
+}
+
+.ui-modal__body {
+  color: var(--ink-80);
+  font-size: var(--size-body);
+  line-height: var(--lh-reading);
+  overflow-wrap: anywhere;
+}
+
+.ui-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--s2);
+  margin-top: var(--s5);
+}
+
+@keyframes ui-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ui-modal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(20px);
+    border-radius: var(--r-pill);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    border-radius: var(--r-surface);
+  }
+}
+
+/* --- Toast --- */
+.ui-toast-viewport {
+  position: fixed;
+  top: var(--s4);
+  right: var(--s4);
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  max-width: 360px;
+}
+
+.ui-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s2);
+  background: var(--bg-elevated);
+  border: 1px solid var(--ink-06);
+  border-left: 3px solid var(--ink-25);
+  border-radius: var(--r-technical);
+  box-shadow: var(--shadow-md);
+  padding: var(--s3);
+  font-size: var(--size-small);
+  animation: ui-toast-in var(--t-med) var(--snap);
+}
+
+.ui-toast--success {
+  border-left-color: var(--pos);
+}
+
+.ui-toast--error {
+  border-left-color: var(--neg);
+}
+
+.ui-toast--warning {
+  border-left-color: var(--warn);
+}
+
+.ui-toast--info {
+  border-left-color: var(--info);
+}
+
+.ui-toast__icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.ui-toast__icon--success {
+  color: var(--pos);
+}
+
+.ui-toast__icon--error {
+  color: var(--neg);
+}
+
+.ui-toast__icon--warning {
+  color: var(--warn);
+}
+
+.ui-toast__icon--info {
+  color: var(--info);
+}
+
+.ui-toast__message {
+  flex: 1;
+  color: var(--ink);
+  line-height: var(--lh-reading);
+  overflow-wrap: anywhere;
+}
+
+.ui-toast__close {
+  min-height: auto;
+  padding: 2px;
+  background: transparent;
+  border: none;
+  border-radius: var(--r-technical);
+  color: var(--ink-60);
+}
+
+.ui-toast__close:hover {
+  background: var(--ink-06);
+  color: var(--ink);
+}
+
+@keyframes ui-toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

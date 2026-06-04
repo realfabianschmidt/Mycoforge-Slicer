@@ -1,0 +1,13 @@
+{
+  "bed_model": "",
+  "bed_texture": "orcaslicer_bed_texture.svg",
+  "default_materials": "Mycoforge Paste",
+  "family": "Mycoforge",
+  "from": "user",
+  "hotend_model": "",
+  "machine_tech": "FFF",
+  "model_id": "mycoforge_klipper_250",
+  "name": "Mycoforge Klipper 250",
+  "nozzle_diameter": "5",
+  "type": "machine_model"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "mycoforge_2040",
+  "name": "Mycoforge 2040",
+  "default_moonraker_url": "http://192.168.1.42:7125",
+  "build_volume_mm": {
+    "x": 320,
+    "y": 295,
+    "z": 160
+  },
+  "print_envelope_mm": {
+    "x": [5, 325],
+    "y": [30, 325],
+    "z": [0, 160]
+  },
+  "move_envelope_mm": {
+    "x": [0, 335],
+    "y": [30, 335],
+    "z": [0, 160]
+  },
+  "default_action": "send_only"
+}

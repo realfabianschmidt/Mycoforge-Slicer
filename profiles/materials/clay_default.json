@@ -1,0 +1,40 @@
+{
+  "id": "clay_default",
+  "name": "Clay Default",
+  "line_width_mm": 4.0,
+  "layer_height_mm": 1.6,
+  "print_speed_mm_s": 18.0,
+  "travel_speed_mm_s": 90.0,
+  "retraction": {
+    "enabled": true,
+    "translation_mode": "annotate_only",
+    "mode": "pcp_pressure_relief",
+    "amount_mm": 1.0,
+    "speed_mm_s": 7.0,
+    "prime_amount_mm": 1.05,
+    "wipe_enabled": false,
+    "wipe_distance_mm": 0.0,
+    "pressure_pause_ms": 100
+  },
+  "motion": {
+    "acceleration_mm_s2": 350,
+    "square_corner_velocity": 2.5
+  },
+  "flow": {
+    "normalize_print_feedrate": true,
+    "max_volumetric_flow_mm3_s": 220.0,
+    "virtual_filament_diameter_mm": 5.0
+  },
+  "paste": {
+    "nozzle_diameter_mm": 5.0,
+    "virtual_e_area_mm2": 19.635,
+    "piston_sync_default": true
+  },
+  "klipper": {
+    "macro_contract": "comment_only",
+    "supports_exclude_object": true
+  },
+  "calibration": {
+    "patterns": ["line_width", "flow_ladder", "corner_pressure", "prime_retract", "layer_adhesion"]
+  }
+}

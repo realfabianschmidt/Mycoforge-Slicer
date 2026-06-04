@@ -1,0 +1,27 @@
+{
+  "from": "user",
+  "gcode_flavor": "klipper",
+  "inherits": "fdm_klipper_common",
+  "instantiation": "true",
+  "max_layer_height": [
+    "4"
+  ],
+  "min_layer_height": [
+    "0.1"
+  ],
+  "name": "Mycoforge Klipper 250 5mm",
+  "nozzle_diameter": [
+    "5"
+  ],
+  "printable_area": [
+    "5x30",
+    "325x30",
+    "325x325",
+    "5x325"
+  ],
+  "printable_height": "160",
+  "printer_model": "Mycoforge Klipper 250",
+  "printer_variant": "5",
+  "setting_id": "GM_MYCOFORGE_KLIPPER_250_5",
+  "type": "machine"
+}

@@ -1,0 +1,248 @@
+/**
+ * SettingsModal layout — overrides the default .ui-modal sizing/padding so the
+ * unified settings dialog carries its own four-row grid (head / tabs / body /
+ * foot). All other modals keep the .ui-modal default look.
+ */
+
+.ui-modal-scrim:has(.settings-modal) {
+  align-items: center;
+}
+
+.settings-modal {
+  width: min(680px, calc(100vw - var(--s5)));
+  max-height: min(760px, calc(100vh - var(--s5)));
+  padding: 0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--ink-06);
+  border-radius: var(--r-surface);
+  box-shadow: var(--shadow-xl);
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  overflow: hidden;
+}
+
+.settings-modal__head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--s4);
+  padding: var(--s5) var(--s5) var(--s4);
+}
+.settings-modal__head-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.settings-modal__title {
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin: 0;
+  line-height: 1.1;
+}
+
+.settings-modal__tabs-row {
+  padding: 0 var(--s5) var(--s4);
+  border-bottom: 1px solid var(--ink-06);
+}
+
+.settings-modal__body {
+  padding: var(--s5);
+  overflow-y: auto;
+  display: grid;
+  gap: var(--s3);
+  align-content: start;
+  background: var(--bg);
+}
+
+.settings-modal__foot {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s3) var(--s5);
+  border-top: 1px solid var(--ink-06);
+  background: var(--bg-elevated);
+}
+.settings-modal__foot-status {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.settings-modal__foot-spacer {
+  flex: 1;
+}
+
+/* Settings sections — surface cards with eyebrow header */
+.settings-section {
+  display: grid;
+  gap: var(--s3);
+}
+.settings-section__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+}
+.settings-section__count {
+  font-family: var(--font-data);
+  font-size: 10px;
+  color: var(--ink-25);
+  letter-spacing: var(--ls-wide);
+}
+
+.settings-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s3);
+}
+
+.settings-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+
+/* Preview tile (Moonraker / Control URL summary) */
+.settings-preview {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  align-items: baseline;
+  gap: var(--s2) var(--s3);
+  font-family: var(--font-data);
+  font-size: var(--size-small);
+}
+.settings-preview > span {
+  color: var(--ink-25);
+  font-size: 10px;
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+}
+.settings-preview > b {
+  color: var(--ink);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Discovery candidate row (file-row style, mono meta) */
+.settings-candidate {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--s3);
+  padding: 10px 12px;
+  border-radius: var(--r-pill);
+  background: var(--bg-elevated);
+  border: 1px solid var(--ink-06);
+  transition: all var(--t-med) var(--fluid);
+}
+.settings-candidate:hover {
+  border-radius: var(--r-technical);
+  border-color: var(--accent-25);
+  background: var(--accent-06);
+}
+.settings-candidate__name {
+  font-size: 13px;
+  color: var(--ink);
+  font-weight: 500;
+}
+.settings-candidate__meta {
+  font-family: var(--font-data);
+  font-size: 10px;
+  color: var(--ink-25);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+.settings-candidates-empty {
+  font-family: var(--font-data);
+  font-size: 11px;
+  letter-spacing: var(--ls-tight);
+  color: var(--ink-25);
+  text-align: center;
+  padding: var(--s4);
+}
+
+/* Inline label + value row used in Slicer status block */
+.settings-kv {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  align-items: center;
+  gap: var(--s2) var(--s3);
+  min-height: 28px;
+}
+.settings-kv__value {
+  font-family: var(--font-data);
+  font-size: 12px;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.settings-kv__value--muted {
+  color: var(--ink-60);
+}
+
+/* Accent swatch grid (4 across) */
+.accent-swatch-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--s2);
+}
+
+/* Field overrides inside the settings modal — labels become mono eyebrows
+   so form rows match the printer-UI vocabulary. */
+.settings-modal .ui-field {
+  display: grid;
+  gap: 6px;
+}
+.settings-modal .ui-field > span:first-child {
+  font-family: var(--font-data);
+  font-size: 9px;
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  color: var(--ink-25);
+}
+.settings-modal .ui-field input {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: var(--size-body);
+  padding: 8px 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--ink-12);
+  border-radius: var(--r-pill);
+  color: var(--ink);
+  transition: all var(--t-med) var(--fluid);
+}
+.settings-modal .ui-field input:hover {
+  border-color: var(--ink-25);
+}
+.settings-modal .ui-field input:focus {
+  outline: none;
+  border-radius: var(--r-technical);
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+}
+.settings-modal .ui-field input[aria-invalid="true"] {
+  border-color: var(--neg);
+}
+
+.settings-about {
+  font-size: 12px;
+  line-height: var(--lh-reading);
+  color: var(--ink-60);
+}
+.settings-about strong {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+@media (max-width: 560px) {
+  .settings-grid-2 {
+    grid-template-columns: 1fr;
+  }
+  .accent-swatch-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

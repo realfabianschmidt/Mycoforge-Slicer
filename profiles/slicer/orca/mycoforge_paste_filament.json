@@ -1,0 +1,28 @@
+{
+  "compatible_printers": [
+    "Mycoforge Klipper 250 5mm",
+    "fdm_klipper_common"
+  ],
+  "compatible_printers_condition": "",
+  "filament_diameter": [
+    "5"
+  ],
+  "filament_flow_ratio": [
+    "1"
+  ],
+  "filament_id": "MYCOFORGE_PASTE",
+  "filament_type": [
+    "Mycoforge Paste"
+  ],
+  "from": "user",
+  "instantiation": "true",
+  "name": "Mycoforge Paste",
+  "nozzle_temperature": [
+    "0"
+  ],
+  "nozzle_temperature_initial_layer": [
+    "0"
+  ],
+  "setting_id": "GF_MYCOFORGE_PASTE",
+  "type": "filament"
+}

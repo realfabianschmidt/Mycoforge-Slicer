@@ -1,0 +1,10 @@
+{
+  "name": "mycoforge-studio",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "desktop:dev": "npm --prefix apps/desktop run tauri:dev",
+    "desktop:build": "npm --prefix apps/desktop run tauri:build",
+    "renderer:build": "npm --prefix apps/desktop run build"
+  }
+}

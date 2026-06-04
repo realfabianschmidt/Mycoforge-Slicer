@@ -1,0 +1,102 @@
+/**
+ * Base layer — reset, document defaults and bare element styling.
+ * Consumes tokens from tokens.css. Class-based rules live in components.css.
+ */
+
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  color: var(--ink);
+  background: var(--bg);
+  font-family: var(--font-body);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: var(--size-body);
+  line-height: var(--lh-reading);
+  color: var(--ink);
+  background: var(--bg);
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* Visible keyboard focus for every interactive element */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Text inputs & selects — OCYRA field look, morphs to technical on focus */
+input,
+select {
+  width: 100%;
+  border: 1px solid var(--ink-12);
+  border-radius: var(--r-surface);
+  background: var(--bg-input);
+  color: var(--ink);
+  padding: var(--s3) var(--s5);
+  transition:
+    border-color var(--transition-fast),
+    border-radius var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+  border-radius: var(--r-technical);
+  box-shadow: var(--focus-ring);
+}
+
+input[aria-invalid="true"],
+select[aria-invalid="true"] {
+  border-color: var(--neg);
+}
+
+/* Native range / checkbox keep their intrinsic chrome, just take the accent */
+input[type="range"],
+input[type="checkbox"] {
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+  accent-color: var(--accent);
+}
+
+input[type="checkbox"] {
+  width: auto;
+}
+
+/* Selection uses the accent */
+::selection {
+  background: var(--accent-12);
+  color: var(--accent);
+}
+
+/* Field labels — OCYRA technical label: uppercase mono micro */
+label span {
+  display: block;
+  margin-bottom: var(--s2);
+  font-family: var(--font-data);
+  font-size: var(--size-micro);
+  font-weight: 500;
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  color: var(--ink-60);
+}

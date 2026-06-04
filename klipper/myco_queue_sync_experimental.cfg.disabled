@@ -1,0 +1,42 @@
+# Disabled migration template for real PCP/Piston queue synchronization.
+#
+# Do not include this file while [manual_stepper piston_motor] is active with
+# the same M4 pins. Klipper must not own one stepper from two config sections.
+# The existing manual_stepper homing/reference workflow remains production
+# until a safe extruder_stepper reference strategy is bench-tested.
+
+#[extruder_stepper piston]
+#extruder: extruder
+#step_pin: PB4
+#dir_pin: !PB3
+#enable_pin: !PB6
+#microsteps: 16
+#full_steps_per_rotation: 200
+#rotation_distance: 2163.3
+#
+#[tmc5160 extruder_stepper piston]
+#cs_pin: PB5
+#spi_software_mosi_pin: PG6
+#spi_software_miso_pin: PG7
+#spi_software_sclk_pin: PG8
+#interpolate: true
+#run_current: 3.2
+#hold_current: 1.0
+#sense_resistor: 0.075
+#stealthchop_threshold: 0
+
+#[gcode_macro PISTON_QUEUE_SYNC_START]
+#description: Experimental queue-sync start after external piston reference confirmation
+#gcode:
+#    {% if printer.save_variables.variables.piston_homed|default(0)|int != 1 %}
+#        {action_raise_error("Piston is not referenced. Do not enable queue-sync.")}
+#    {% endif %}
+#    APPLY_MYCO_EXTRUSION_CONFIG
+#    SYNC_EXTRUDER_MOTION EXTRUDER=piston MOTION_QUEUE=extruder
+#    RESPOND MSG="Experimental piston queue-sync enabled."
+
+#[gcode_macro PISTON_QUEUE_SYNC_STOP]
+#description: Experimental queue-sync stop
+#gcode:
+#    SYNC_EXTRUDER_MOTION EXTRUDER=piston MOTION_QUEUE=
+#    RESPOND MSG="Experimental piston queue-sync disabled."

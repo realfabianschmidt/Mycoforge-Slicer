@@ -1,0 +1,40 @@
+{
+  "id": "calibration_paste",
+  "name": "Calibration Paste",
+  "line_width_mm": 3.0,
+  "layer_height_mm": 1.2,
+  "print_speed_mm_s": 12.0,
+  "travel_speed_mm_s": 70.0,
+  "retraction": {
+    "enabled": true,
+    "translation_mode": "annotate_only",
+    "mode": "pcp_only",
+    "amount_mm": 0.6,
+    "speed_mm_s": 5.0,
+    "prime_amount_mm": 0.65,
+    "wipe_enabled": false,
+    "wipe_distance_mm": 0.0,
+    "pressure_pause_ms": 50
+  },
+  "motion": {
+    "acceleration_mm_s2": 250,
+    "square_corner_velocity": 1.8
+  },
+  "flow": {
+    "normalize_print_feedrate": true,
+    "max_volumetric_flow_mm3_s": 150.0,
+    "virtual_filament_diameter_mm": 5.0
+  },
+  "paste": {
+    "nozzle_diameter_mm": 5.0,
+    "virtual_e_area_mm2": 19.635,
+    "piston_sync_default": true
+  },
+  "klipper": {
+    "macro_contract": "comment_only",
+    "supports_exclude_object": true
+  },
+  "calibration": {
+    "patterns": ["line_width", "flow_ladder", "corner_pressure", "prime_retract", "layer_adhesion"]
+  }
+}
