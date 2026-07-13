@@ -212,12 +212,14 @@ function runChecks(nextVersion) {
   ensureToolchain();
   run('node', ['--check', 'release_tools/verify-release-version.mjs']);
   run('node', ['--check', 'release_tools/release-mycoforge.mjs']);
+  run('node', ['--check', 'release_tools/prepare-orca-vendor.mjs']);
   run('node', ['release_tools/verify-release-version.mjs', releaseTagName(nextVersion)]);
   run(npmCommand, ['--prefix', 'apps/desktop', 'run', 'test']);
   run(npmCommand, ['--prefix', 'apps/desktop', 'run', 'build']);
   run('python', ['-m', 'pytest']);
 
   if (flags.has('--full-checks')) {
+    run('node', ['release_tools/prepare-orca-vendor.mjs', '--version', 'v2.3.2']);
     run(npmCommand, ['--prefix', 'apps/desktop', 'run', 'tauri:build']);
   }
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from io import BytesIO
+import json
 from pathlib import Path
 import zipfile
 
@@ -40,6 +41,43 @@ def test_slicer_home_can_use_installed_app_cache(monkeypatch, tmp_path):
     assert slicer_manager.slicer_home(root=explicit_root) == explicit_root / "third_party" / "slicers"
 
 
+def test_install_orca_uses_bundled_vendor_before_download(monkeypatch, tmp_path):
+    vendor_root = tmp_path / "vendor" / "orca"
+    bundled_binary = vendor_root / "win-x64" / "v2.3.2" / "OrcaSlicer" / "OrcaSlicer.exe"
+    bundled_binary.parent.mkdir(parents=True)
+    bundled_binary.write_text("fake exe", encoding="utf-8")
+    (vendor_root / "manifest.json").write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "version": "v2.3.2",
+                "asset_name": "OrcaSlicer_Windows_V2.3.2_portable.zip",
+                "install_dir": "win-x64/v2.3.2",
+                "binary_path": "win-x64/v2.3.2/OrcaSlicer/OrcaSlicer.exe",
+                "release_url": "https://github.com/OrcaSlicer/OrcaSlicer/releases/tag/v2.3.2",
+                "source_url": "https://github.com/OrcaSlicer/OrcaSlicer/tree/v2.3.2",
+                "license": "AGPL-3.0-only",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    def fail_get(*args, **kwargs):
+        raise AssertionError("Bundled OrcaSlicer should not hit the network")
+
+    monkeypatch.setattr(slicer_manager.requests, "get", fail_get)
+
+    result = slicer_manager.install_orca(root=tmp_path)
+    status = slicer_manager.slicer_status(root=tmp_path)
+
+    assert result["ok"] is True
+    assert result["source"] == "bundled"
+    assert result["version"] == "v2.3.2"
+    assert Path(result["binary_path"]).is_file()
+    assert status["resolution"]["state"] == "installed"
+    assert status["configured"]["managed"]["orca"]["distribution"] == "bundled"
+
+
 def test_install_orca_downloads_extracts_and_updates_manifest(monkeypatch, tmp_path):
     archive = BytesIO()
     with zipfile.ZipFile(archive, "w") as zip_file:
@@ -52,8 +90,8 @@ def test_install_orca_downloads_extracts_and_updates_manifest(monkeypatch, tmp_p
 
         def json(self):
             return {
-                "tag_name": "v9.9.9",
-                "html_url": "https://github.com/OrcaSlicer/OrcaSlicer/releases/tag/v9.9.9",
+                "tag_name": "v2.3.2",
+                "html_url": "https://github.com/OrcaSlicer/OrcaSlicer/releases/tag/v2.3.2",
                 "assets": [
                     {
                         "name": "OrcaSlicer_Windows_x64_portable.zip",
@@ -76,7 +114,7 @@ def test_install_orca_downloads_extracts_and_updates_manifest(monkeypatch, tmp_p
             yield archive_bytes
 
     def fake_get(url, **kwargs):
-        if url.endswith("/latest"):
+        if url.endswith("/tags/v2.3.2"):
             return JsonResponse()
         return DownloadResponse()
 
@@ -88,4 +126,4 @@ def test_install_orca_downloads_extracts_and_updates_manifest(monkeypatch, tmp_p
     assert result["ok"] is True
     assert Path(result["binary_path"]).is_file()
     assert status["resolution"]["state"] == "installed"
-    assert status["resolution"]["version"] == "v9.9.9"
+    assert status["resolution"]["version"] == "v2.3.2"

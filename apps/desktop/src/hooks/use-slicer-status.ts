@@ -8,6 +8,8 @@ interface SlicerStatusPayload {
   resolution?: SlicerResolution;
 }
 
+const DEFAULT_ORCA_VERSION = "v2.3.2";
+
 /**
  * Owns slicer resolution state and the custom-path input. Resolves the slicer
  * once on mount and exposes the install / test / set-custom actions.
@@ -29,7 +31,7 @@ export function useSlicerStatus(runCliJson: RunCliJson) {
       "slicer",
       "install-orca",
       "--version",
-      "latest"
+      DEFAULT_ORCA_VERSION
     ]);
     if (payload?.ok) await refresh();
   }, [runCliJson, refresh]);

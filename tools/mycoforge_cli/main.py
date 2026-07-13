@@ -44,7 +44,14 @@ from .short_extrusion_filter import (
     filter_short_extrusions as filter_short_extrusion_lines,
     short_extrusion_filter_header,
 )
-from .slicer_manager import SlicerManagerError, install_orca, set_custom_slicer, slicer_status, resolve_slicer
+from .slicer_manager import (
+    DEFAULT_ORCA_VERSION,
+    SlicerManagerError,
+    install_orca,
+    set_custom_slicer,
+    slicer_status,
+    resolve_slicer,
+)
 from .slicer_runner import SliceRequest, slice_model
 from .validators import require_existing_file, require_parent_dir
 
@@ -414,7 +421,7 @@ def slicer_status_cmd() -> None:
 
 
 @slicer_app.command("install-orca")
-def slicer_install_orca(version: str = typer.Option("latest", "--version")) -> None:
+def slicer_install_orca(version: str = typer.Option(DEFAULT_ORCA_VERSION, "--version")) -> None:
     try:
         result = install_orca(version)
     except SlicerManagerError as exc:

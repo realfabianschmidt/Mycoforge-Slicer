@@ -35,18 +35,19 @@ mycoforge normalize-gcode raw.gcode --out normalized.gcode --speed 15
 mycoforge translate-retraction normalized.gcode --out annotated.gcode --mode annotate_only
 mycoforge process-gcode raw.gcode --out mycoforge_ready.gcode --profile profiles/materials/mycelium_default.json
 mycoforge slicer status
-mycoforge slicer install-orca --version latest
+mycoforge slicer install-orca --version v2.3.2
 mycoforge slice-process model.stl --out mycoforge_ready.gcode --profile profiles/materials/mycelium_default.json
 mycoforge upload mycoforge_ready.gcode --moonraker http://192.168.1.42:7125
 mycoforge print mycoforge_ready.gcode --moonraker http://192.168.1.42:7125
 ```
 
-Managed OrcaSlicer downloads are stored under `third_party/slicers/orca/` and
-are ignored by git. Mycoforge Studio does not vendor OrcaSlicer source or
-binaries into this repository.
+Managed OrcaSlicer installs are stored under `third_party/slicers/orca/` and
+are ignored by git. Local source checkouts do not commit OrcaSlicer binaries.
 
-Installed desktop builds store managed OrcaSlicer downloads in the app-local
-data directory instead, so the installation directory can stay read-only.
+Installed desktop builds store managed OrcaSlicer state in the app-local data
+directory instead, so the installation directory can stay read-only. Release
+installers bundle OrcaSlicer `v2.3.2` as a separate third-party AGPL-3.0 tool
+and copy it into that writable cache when `Install Orca` is used.
 
 During development, without installing the package:
 
@@ -123,13 +124,16 @@ Run the full local Tauri installer build before pushing the tag:
 .\release.ps1 patch -FullChecks
 ```
 
-After the tag is pushed, GitHub Actions builds the unsigned Windows NSIS setup
-EXE and publishes it on:
+After the tag is pushed, GitHub Actions downloads the pinned OrcaSlicer
+portable ZIP, verifies its SHA-256 digest, bundles it into the unsigned Windows
+NSIS setup EXE, and publishes the installer on:
 
 ```text
 https://github.com/realfabianschmidt/Mycoforge-Slicer/releases/tag/app-v<version>
 ```
 
-The installer bundles the Mycoforge `tools/`, `profiles/`, `klipper/`, and docs
-resources. Python 3.11+ and the Python package dependencies are still expected
-on the target machine for this first release flow.
+The installer bundles the Mycoforge `tools/`, `profiles/`, `klipper/`, docs,
+and OrcaSlicer `v2.3.2` resources. OrcaSlicer is redistributed as a separate
+AGPL-3.0 third-party executable; see `vendor/orca/THIRD_PARTY_NOTICES.md`.
+Python 3.11+ and the Python package dependencies are still expected on the
+target machine for this first release flow.

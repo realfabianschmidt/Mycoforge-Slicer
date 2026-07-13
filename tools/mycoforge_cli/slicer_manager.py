@@ -19,6 +19,7 @@ from .validators import require_existing_file
 
 
 GITHUB_RELEASES_API = "https://api.github.com/repos/OrcaSlicer/OrcaSlicer/releases"
+DEFAULT_ORCA_VERSION = "v2.3.2"
 SCHEMA_VERSION = 1
 
 
@@ -144,7 +145,21 @@ def slicer_status(root: Path | None = None) -> dict[str, Any]:
     }
 
 
-def install_orca(version: str = "latest", root: Path | None = None) -> dict[str, Any]:
+def install_orca(version: str = DEFAULT_ORCA_VERSION, root: Path | None = None) -> dict[str, Any]:
+    requested_version = version or DEFAULT_ORCA_VERSION
+    try:
+        if requested_version == DEFAULT_ORCA_VERSION:
+            bundled = install_bundled_orca(requested_version, root)
+            if bundled is not None:
+                return bundled
+        return install_downloaded_orca(requested_version, root)
+    except SlicerManagerError:
+        raise
+    except (OSError, shutil.Error, zipfile.BadZipFile) as exc:
+        raise SlicerManagerError(f"Could not install OrcaSlicer {requested_version}: {exc}") from exc
+
+
+def install_downloaded_orca(version: str, root: Path | None = None) -> dict[str, Any]:
     release = fetch_orca_release(version)
     asset = select_windows_orca_asset(release.get("assets", []))
 
@@ -183,7 +198,89 @@ def install_orca(version: str = "latest", root: Path | None = None) -> dict[str,
     }
 
 
-def fetch_orca_release(version: str = "latest") -> dict[str, Any]:
+def install_bundled_orca(version: str, root: Path | None = None) -> dict[str, Any] | None:
+    bundled = load_bundled_orca_manifest(root)
+    if bundled is None:
+        return None
+
+    manifest_file, bundled_manifest = bundled
+    if bundled_manifest.get("version") != version:
+        return None
+
+    vendor_root = manifest_file.parent
+    bundled_install_dir = _safe_vendor_path(vendor_root, bundled_manifest.get("install_dir"), "install_dir")
+    bundled_binary = _safe_vendor_path(vendor_root, bundled_manifest.get("binary_path"), "binary_path")
+
+    if not bundled_install_dir.is_dir():
+        raise SlicerManagerError(f"Bundled OrcaSlicer directory is missing: {bundled_install_dir}")
+    if not bundled_binary.is_file():
+        raise SlicerManagerError(f"Bundled OrcaSlicer executable is missing: {bundled_binary}")
+
+    install_root = slicer_home(root) / "orca" / sanitize_version(version)
+    copy_directory_replace(bundled_install_dir, install_root, slicer_home(root))
+    binary = find_orca_binary(install_root)
+
+    manifest = load_manifest(root)
+    manifest.setdefault("managed", {})["orca"] = {
+        "version": version,
+        "binary_path": str(binary),
+        "install_dir": str(install_root),
+        "asset_name": bundled_manifest.get("asset_name"),
+        "release_url": bundled_manifest.get("release_url"),
+        "source_url": bundled_manifest.get("source_url"),
+        "source_archive_url": bundled_manifest.get("source_archive_url"),
+        "license": bundled_manifest.get("license"),
+        "distribution": "bundled",
+    }
+    save_manifest(manifest, root)
+
+    return {
+        "ok": True,
+        "source": "bundled",
+        "version": version,
+        "asset": bundled_manifest.get("asset_name"),
+        "binary_path": str(binary),
+        "install_dir": str(install_root),
+        "release_url": bundled_manifest.get("release_url"),
+        "source_url": bundled_manifest.get("source_url"),
+        "license": bundled_manifest.get("license"),
+    }
+
+
+def load_bundled_orca_manifest(root: Path | None = None) -> tuple[Path, dict[str, Any]] | None:
+    path = bundled_orca_manifest_path(root)
+    if not path.exists():
+        return None
+
+    try:
+        with path.open("r", encoding="utf-8") as handle:
+            manifest = json.load(handle)
+    except json.JSONDecodeError as exc:
+        raise SlicerManagerError(f"Bundled OrcaSlicer manifest is not valid JSON: {path}") from exc
+
+    if not isinstance(manifest, dict):
+        raise SlicerManagerError(f"Bundled OrcaSlicer manifest must contain a JSON object: {path}")
+    return path, manifest
+
+
+def bundled_orca_manifest_path(root: Path | None = None) -> Path:
+    base = root if root is not None else project_root()
+    return base / "vendor" / "orca" / "manifest.json"
+
+
+def copy_directory_replace(source: Path, destination: Path, allowed_root: Path) -> None:
+    allowed = allowed_root.resolve()
+    target = destination.resolve()
+    if target != allowed and allowed not in target.parents:
+        raise SlicerManagerError(f"Refusing to copy OrcaSlicer outside slicer home: {destination}")
+
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    if destination.exists():
+        shutil.rmtree(destination)
+    shutil.copytree(source, destination)
+
+
+def fetch_orca_release(version: str = DEFAULT_ORCA_VERSION) -> dict[str, Any]:
     url = f"{GITHUB_RELEASES_API}/latest" if version == "latest" else f"{GITHUB_RELEASES_API}/tags/{version}"
     try:
         response = requests.get(url, timeout=30)
@@ -230,10 +327,12 @@ def download_file(url: str, destination: Path) -> None:
     if parsed.scheme not in {"http", "https"}:
         raise SlicerManagerError(f"Unsupported download URL: {url}")
 
-    fd, tmp_name = tempfile.mkstemp(prefix="orca-", suffix=".download", dir=destination.parent)
-    os.close(fd)
-    tmp = Path(tmp_name)
+    tmp: Path | None = None
     try:
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        fd, tmp_name = tempfile.mkstemp(prefix="orca-", suffix=".download", dir=destination.parent)
+        os.close(fd)
+        tmp = Path(tmp_name)
         with requests.get(url, stream=True, timeout=120) as response:
             response.raise_for_status()
             with tmp.open("wb") as handle:
@@ -241,10 +340,10 @@ def download_file(url: str, destination: Path) -> None:
                     if chunk:
                         handle.write(chunk)
         tmp.replace(destination)
-    except RequestException as exc:
+    except (OSError, RequestException) as exc:
         raise SlicerManagerError(f"Could not download OrcaSlicer asset: {exc}") from exc
     finally:
-        if tmp.exists():
+        if tmp is not None and tmp.exists():
             tmp.unlink()
 
 
@@ -276,6 +375,16 @@ def find_orca_binary(install_root: Path) -> Path:
 
 def sanitize_version(version: str) -> str:
     return "".join(char if char.isalnum() or char in ".-_" else "_" for char in version)
+
+
+def _safe_vendor_path(vendor_root: Path, relative_value: object, field_name: str) -> Path:
+    if not isinstance(relative_value, str) or not relative_value.strip():
+        raise SlicerManagerError(f"Bundled OrcaSlicer manifest is missing {field_name}.")
+    candidate = (vendor_root / relative_value).resolve()
+    root = vendor_root.resolve()
+    if candidate != root and root not in candidate.parents:
+        raise SlicerManagerError(f"Bundled OrcaSlicer manifest contains unsafe {field_name}: {relative_value}")
+    return candidate
 
 
 def _asset_score(name: str) -> int:

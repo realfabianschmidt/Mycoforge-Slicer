@@ -30,6 +30,7 @@
     ],
     "resources": {
       "../../../tools": "tools",
+      "../../../vendor/orca": "vendor/orca",
       "../../../profiles": "profiles",
       "../../../klipper": "klipper",
       "../../../docs": "docs",
