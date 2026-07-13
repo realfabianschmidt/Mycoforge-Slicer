@@ -61,6 +61,9 @@ function run(cmd, args, options = {}) {
     fail(`Command failed: ${cmd} ${args.join(' ')}`);
   }
 
+  if (capture && options.allowFailure) {
+    return result;
+  }
   return capture ? result.stdout.trim() : result;
 }
 
