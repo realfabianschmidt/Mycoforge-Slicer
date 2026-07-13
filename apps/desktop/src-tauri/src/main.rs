@@ -6,6 +6,7 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
+use tauri::Manager;
 
 #[derive(Serialize)]
 struct CommandResult {
@@ -67,19 +68,23 @@ fn default_model_center_y() -> f64 {
 }
 
 #[tauri::command]
-fn run_mycoforge(args: Vec<String>) -> Result<CommandResult, String> {
-    let root = find_repo_root()?;
+fn run_mycoforge(app: tauri::AppHandle, args: Vec<String>) -> Result<CommandResult, String> {
+    let root = find_mycoforge_root(&app)?;
     let python = env::var("MYCOFORGE_PYTHON").unwrap_or_else(|_| "python".to_string());
     let tools_path = root.join("tools");
-
-    let output = Command::new(python)
+    let mut command = Command::new(python);
+    command
         .arg("-m")
         .arg("mycoforge_cli.main")
         .args(args)
         .current_dir(&root)
-        .env("PYTHONPATH", tools_path)
-        .output()
-        .map_err(|error| error.to_string())?;
+        .env("PYTHONPATH", tools_path);
+
+    if let Some(slicer_home) = bundled_slicer_home(&app, &root)? {
+        command.env("MYCOFORGE_SLICER_HOME", slicer_home);
+    }
+
+    let output = command.output().map_err(|error| error.to_string())?;
 
     let status = output.status.code().unwrap_or(-1);
     Ok(CommandResult {
@@ -91,8 +96,8 @@ fn run_mycoforge(args: Vec<String>) -> Result<CommandResult, String> {
 }
 
 #[tauri::command]
-fn list_material_profiles() -> Result<Vec<MaterialProfile>, String> {
-    let root = find_repo_root()?;
+fn list_material_profiles(app: tauri::AppHandle) -> Result<Vec<MaterialProfile>, String> {
+    let root = find_mycoforge_root(&app)?;
     let materials_dir = root.join("profiles").join("materials");
     let mut materials = Vec::new();
 
@@ -429,26 +434,61 @@ fn sanitize_filename(value: &str) -> String {
         .collect()
 }
 
-fn find_repo_root() -> Result<PathBuf, String> {
-    let start = env::var("MYCOFORGE_ROOT")
-        .map(PathBuf::from)
-        .or_else(|_| env::current_dir().map_err(|error| error.to_string()))?;
+fn find_mycoforge_root(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    if let Ok(root) = env::var("MYCOFORGE_ROOT").map(PathBuf::from) {
+        if is_mycoforge_root(&root) {
+            return Ok(root);
+        }
+        return Err(format!(
+            "MYCOFORGE_ROOT does not contain tools and profiles: {}",
+            root.display()
+        ));
+    }
 
-    for candidate in start.ancestors() {
-        if is_repo_root(candidate) {
-            return Ok(candidate.to_path_buf());
+    if let Ok(current_dir) = env::current_dir() {
+        if let Some(root) = find_root_from_ancestors(&current_dir) {
+            return Ok(root);
         }
     }
 
-    Err(format!(
-        "Could not find Mycoforge repo root from {}",
-        start.display()
-    ))
+    if let Ok(resource_dir) = app.path().resource_dir() {
+        if is_mycoforge_root(&resource_dir) {
+            return Ok(resource_dir);
+        }
+        if let Some(root) = find_root_from_ancestors(&resource_dir) {
+            return Ok(root);
+        }
+    }
+
+    Err("Could not find Mycoforge tools and profiles in MYCOFORGE_ROOT, the current directory, or bundled resources.".to_string())
 }
 
-fn is_repo_root(path: &Path) -> bool {
+fn find_root_from_ancestors(start: &Path) -> Option<PathBuf> {
+    for candidate in start.ancestors() {
+        if is_mycoforge_root(candidate) {
+            return Some(candidate.to_path_buf());
+        }
+    }
+    None
+}
+
+fn is_mycoforge_root(path: &Path) -> bool {
     path.join("tools").join("mycoforge_cli").is_dir()
         && path.join("profiles").join("materials").is_dir()
+}
+
+fn bundled_slicer_home(app: &tauri::AppHandle, root: &Path) -> Result<Option<PathBuf>, String> {
+    if env::var_os("MYCOFORGE_SLICER_HOME").is_some() || root.join(".git").is_dir() {
+        return Ok(None);
+    }
+
+    let slicer_home = app
+        .path()
+        .app_local_data_dir()
+        .map_err(|error| error.to_string())?
+        .join("slicers");
+    fs::create_dir_all(&slicer_home).map_err(|error| error.to_string())?;
+    Ok(Some(slicer_home))
 }
 
 fn main() {

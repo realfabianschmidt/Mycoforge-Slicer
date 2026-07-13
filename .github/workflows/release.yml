@@ -1,0 +1,103 @@
+name: Release Mycoforge Studio
+
+on:
+  push:
+    tags:
+      - "app-v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-publish:
+    name: Build and publish Windows installer
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: apps/desktop/package-lock.json
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Verify release version
+        run: node release_tools/verify-release-version.mjs "$env:GITHUB_REF_NAME"
+
+      - name: Check release JavaScript syntax
+        run: |
+          node --check release_tools/verify-release-version.mjs
+          node --check release_tools/release-mycoforge.mjs
+
+      - name: Install desktop dependencies
+        run: npm.cmd --prefix apps/desktop ci
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[test]"
+
+      - name: Run desktop tests
+        run: npm.cmd --prefix apps/desktop run test
+
+      - name: Build renderer
+        run: npm.cmd --prefix apps/desktop run build
+
+      - name: Run Python tests
+        run: python -m pytest
+
+      - name: Build Tauri installer
+        run: npm.cmd --prefix apps/desktop run tauri:build
+
+      - name: Stage release asset
+        id: asset
+        shell: pwsh
+        run: |
+          $asset = Get-ChildItem -Path "apps/desktop/src-tauri/target/release/bundle/nsis" -Filter "*.exe" | Select-Object -First 1
+          if (-not $asset) {
+            throw "No NSIS setup executable was produced."
+          }
+          New-Item -ItemType Directory -Force -Path "release-assets" | Out-Null
+          $target = "release-assets/mycoforge-studio-windows-x64-setup.exe"
+          Copy-Item -LiteralPath $asset.FullName -Destination $target -Force
+          "asset_path=$target" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: mycoforge-studio-windows-x64-setup
+          path: ${{ steps.asset.outputs.asset_path }}
+          if-no-files-found: error
+
+      - name: Publish GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          ASSET_PATH: ${{ steps.asset.outputs.asset_path }}
+        run: |
+          if (-not $env:RELEASE_TAG) {
+            throw "Release tag is empty."
+          }
+          gh release view $env:RELEASE_TAG *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $env:RELEASE_TAG $env:ASSET_PATH --clobber
+            gh release edit $env:RELEASE_TAG --draft=false --latest --title "Mycoforge Studio $env:RELEASE_TAG" --notes "Windows installer for Mycoforge Studio $env:RELEASE_TAG."
+          } else {
+            gh release create $env:RELEASE_TAG $env:ASSET_PATH --verify-tag --latest --title "Mycoforge Studio $env:RELEASE_TAG" --notes "Windows installer for Mycoforge Studio $env:RELEASE_TAG."
+          }

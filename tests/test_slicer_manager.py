@@ -30,6 +30,16 @@ def test_set_custom_slicer_resolves_custom_binary(tmp_path):
     assert status["resolution"]["path"] == str(binary.resolve())
 
 
+def test_slicer_home_can_use_installed_app_cache(monkeypatch, tmp_path):
+    cache = tmp_path / "app-cache"
+    explicit_root = tmp_path / "repo-root"
+
+    monkeypatch.setenv("MYCOFORGE_SLICER_HOME", str(cache))
+
+    assert slicer_manager.slicer_home() == cache
+    assert slicer_manager.slicer_home(root=explicit_root) == explicit_root / "third_party" / "slicers"
+
+
 def test_install_orca_downloads_extracts_and_updates_manifest(monkeypatch, tmp_path):
     archive = BytesIO()
     with zipfile.ZipFile(archive, "w") as zip_file:

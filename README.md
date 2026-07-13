@@ -45,6 +45,9 @@ Managed OrcaSlicer downloads are stored under `third_party/slicers/orca/` and
 are ignored by git. Mycoforge Studio does not vendor OrcaSlicer source or
 binaries into this repository.
 
+Installed desktop builds store managed OrcaSlicer downloads in the app-local
+data directory instead, so the installation directory can stay read-only.
+
 During development, without installing the package:
 
 ```bash
@@ -90,3 +93,43 @@ Python tests require a working Python interpreter on PATH:
 ```bash
 pytest
 ```
+
+## Releases
+
+Windows releases are published from `main` by pushing an `app-v<version>` tag.
+The local helper bumps all app version files, runs checks, commits the version
+change, pushes `main`, and pushes the release tag:
+
+```powershell
+.\release.ps1 patch
+```
+
+Preview the next version without changing files, commits, tags, or releases:
+
+```powershell
+.\release.ps1 patch -DryRun
+```
+
+If local PowerShell policy blocks `.ps1` files, use the same wrapper with an
+explicit process-local bypass:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\release.ps1 patch -DryRun
+```
+
+Run the full local Tauri installer build before pushing the tag:
+
+```powershell
+.\release.ps1 patch -FullChecks
+```
+
+After the tag is pushed, GitHub Actions builds the unsigned Windows NSIS setup
+EXE and publishes it on:
+
+```text
+https://github.com/realfabianschmidt/Mycoforge-Slicer/releases/tag/app-v<version>
+```
+
+The installer bundles the Mycoforge `tools/`, `profiles/`, `klipper/`, and docs
+resources. Python 3.11+ and the Python package dependencies are still expected
+on the target machine for this first release flow.

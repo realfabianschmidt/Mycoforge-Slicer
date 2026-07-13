@@ -22,7 +22,15 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
-    "icon": []
+    "targets": ["nsis"],
+    "icon": ["icons/icon.ico"],
+    "resources": {
+      "../../../tools": "tools",
+      "../../../profiles": "profiles",
+      "../../../klipper": "klipper",
+      "../../../docs": "docs",
+      "../../../README.md": "README.md",
+      "../../../pyproject.toml": "pyproject.toml"
+    }
   }
 }

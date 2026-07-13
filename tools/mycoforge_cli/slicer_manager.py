@@ -49,7 +49,11 @@ def project_root() -> Path:
 
 
 def slicer_home(root: Path | None = None) -> Path:
-    return (root or project_root()) / "third_party" / "slicers"
+    if root is not None:
+        return root / "third_party" / "slicers"
+    if configured_home := os.environ.get("MYCOFORGE_SLICER_HOME"):
+        return Path(configured_home).expanduser()
+    return project_root() / "third_party" / "slicers"
 
 
 def manifest_path(root: Path | None = None) -> Path:
