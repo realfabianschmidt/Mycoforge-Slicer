@@ -40,7 +40,7 @@ function run(cmd, args, options = {}) {
     cwd: options.cwd || repoRoot,
     stdio: capture ? 'pipe' : 'inherit',
     encoding: capture ? 'utf8' : undefined,
-    shell: false,
+    shell: options.shell ?? shouldUseShell(cmd),
     maxBuffer: 100 * 1024 * 1024,
   });
 
@@ -65,6 +65,10 @@ function run(cmd, args, options = {}) {
     return result;
   }
   return capture ? result.stdout.trim() : result;
+}
+
+function shouldUseShell(cmd) {
+  return process.platform === 'win32' && /\.(cmd|bat)$/i.test(cmd);
 }
 
 function git(args, options = {}) {
